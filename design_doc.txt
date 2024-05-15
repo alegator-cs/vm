@@ -1,0 +1,70 @@
+some notes on allocator ideas
+
+a simple allocator should handle two basic cases:
+    1. return a fixed size chunk
+    2. return a variable size chunk
+
+it's easy to get started by focusing on the first case which is simpler
+
+we need some function signature like
+
+void *alloc(size_t size);
+
+and there's two basic cases:
+
+void *alloc(size_t size) {
+    if (size < FIXED_CHUNK_SIZE) {
+        // fixed size branch
+    }
+    else {
+        // dynamic size branch
+    };
+}
+
+focusing on the first case, there will be pages of memory somewhere that can be further divided into chunks
+it's possible to set the chunk size to the page size to simplify initially
+
+so from this point in this document, pages = chunks
+ _______________________________________________________
+|page[0] : 0..FIXED_PAGE_SIZE                           |
+|page[1] : FIXED_PAGE_SIZE..(FIXED_PAGE_SIZE * 2)       |
+|page[2] : (FIXED_PAGE_SIZE * 2)..(FIXED_PAGE_SIZE * 3) |
+|page[3] : (FIXED_PAGE_SIZE * 3)..(FIXED_PAGE_SIZE * 4) |
+|  .                                                    |
+|  .                                                    |
+|  .                                                    |
+|_______________________________________________________|
+
+i like to declare this as just bytes, you may prefer to declare it as pages
+    1. uint8_t mem[FIXED_PAGE_SIZE * NUM_PAGES];
+    2. page_t mem[NUM_PAGES];
+
+there's no difference in practice, you just cast to what you want in line of code, e.g.
+    1. (page_t *)mem[i];
+    2. (uint8_t *)mem[FIXED_PAGE_SIZE * i];
+
+we have to keep track of which chunks are in use, and a simple way is to use the first byte
+to indicate that the page on that boundary is occupied, set the first byte to 0
+to indicate that the page on that boundary is unoccupied, set the first byte to anything but 0
+
+then to check that the page is occupied:
+
+bool page_is_occupied(page_t *page) {
+    return *(uint8_t *)(page) == 0;
+}
+// .. or..
+bool page_is_occupied(uint8_t *mem) {
+    return *mem == 0;
+}
+
+to serve the next available page with a simple FIFO algorithm, search for the first byte on a page boundary that's zero
+note it is important here to check one byte at a time, or you could miss available empty pages
+
+uint8_t *find_first_empty_page(uint8_t *mem) {
+    uint32_t i = 0;
+    page_t pg = mem;
+    while (page_is_occupied(pg[i])) {
+        i++;
+    }
+    return !page_is_occupied(pg[i]) ? pg[i] : nullptr;
+}

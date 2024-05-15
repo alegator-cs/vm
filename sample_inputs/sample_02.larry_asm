@@ -1,0 +1,17 @@
+# this sample .larry_asm file includes basic register-register, register-immediate, i/o instructions
+
+input r0
+inputc r1
+incr r0
+addi r1, #3
+addr r0, r1
+movi r2, #4
+movr r3, r2
+printr r0
+printcr r0
+movmr r0 r1
+movrm r2 r3
+movmm r0 r2
+printm #0
+printcm #4
+exit
