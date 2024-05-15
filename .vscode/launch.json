@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "C/C++: build and run vm.exe",
+        "type": "cppvsdbg",
+        "request": "launch",
+        "program": "vm.exe",
+        "args": [
+          "samples_inputs\\sample_01.larry_asm"
+        ],
+        "stopAtEntry": false,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "preLaunchTask": "C/C++: cl.exe build active file"
+      }
+    ]
+  }
